@@ -254,7 +254,42 @@ void PlayerController::ServerReadyToStartMatch(AFortPlayerControllerAthena* Play
 
 	GameState->GameMemberInfoArray.Members.Add(MemberInfo);
 	GameState->GameMemberInfoArray.MarkArrayDirty();
+static bool TravisStarted = false;
 
+if (!TravisStarted) {
+    auto BP_Jerky_Loader_C =
+        StaticFindObject<UClass>("/CycloneJerky/Gameplay/BP_Jerky_Loader.BP_Jerky_Loader_C");
+
+    if (BP_Jerky_Loader_C) {
+        TArray<AActor*> JerkyLoaders;
+
+        UGameplayStatics::GetAllActorsOfClass(
+            GetWorld(),
+            BP_Jerky_Loader_C,
+            &JerkyLoaders
+        );
+
+        for (auto JerkyLoader : JerkyLoaders) {
+            if (!JerkyLoader)
+                continue;
+
+            UFunction* Func = JerkyLoader->Class->GetFunction(
+                "BP_Jerky_Loader_C",
+                "startevent"
+            );
+
+            if (!Func)
+                continue;
+
+            float Params = 0.f;
+            JerkyLoader->ProcessEvent(Func, &Params);
+
+            TravisStarted = true;
+            std::cout << "TRAVIS EVENT STARTED!" << std::endl;
+            break;
+        }
+    }
+}
 	return ServerReadyToStartMatchOG(PlayerController);
 }
 
